@@ -418,14 +418,18 @@ async function exportAsPng() {
 
   // Dynamic Height Adjustment based on final Y
   const finalH = curY + (10 * rowH);
+  
+  const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const paletteName = `OKLCH_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
+  
   if (canvas.height !== finalH) {
     const tempCanvas = document.createElement('canvas');
     tempCanvas.width = canvas.width; tempCanvas.height = finalH;
     const tCtx = tempCanvas.getContext('2d');
     tCtx.drawImage(canvas, 0, 0);
-    const link = document.createElement('a'); link.download = 'industrial-palette-tiled.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
+    const link = document.createElement('a'); link.download = `${paletteName}.png`; link.href = tempCanvas.toDataURL('image/png'); link.click();
   } else {
-    const link = document.createElement('a'); link.download = 'industrial-palette-tiled.png'; link.href = canvas.toDataURL('image/png'); link.click();
+    const link = document.createElement('a'); link.download = `${paletteName}.png`; link.href = canvas.toDataURL('image/png'); link.click();
   }
 }
 
