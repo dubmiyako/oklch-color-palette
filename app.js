@@ -115,6 +115,12 @@ function applyLighting(baseHex, type) {
       c = base.c * 0.5 + sky.c * 0.6;
       h = mixHue(base.h, sky.h, 0.8); // Strong pull to bouncy sky light (80%)
       break;
+    case 'litBase': // Environmentally Lit Base
+      // Slight darkening and slight hue pull towards ambient light to ground the object
+      l = Math.min(0.95, base.l * 0.95);
+      c = base.c * 0.9 + (amb.c * 0.1);
+      h = mixHue(base.h, amb.h, 0.15); // Pull hue 15% towards ambient for natural integration
+      break;
   }
   return oklchToHex(l, c, h);
 }
@@ -448,8 +454,8 @@ function oklchToHex(l, c, h) { const rgb = oklchToRgb(l, c, h); return rgbToHex(
 function updateLightingPreview() {
   const bg = document.getElementById('preview_bg');
   if (bg) {
-    // Derive a very dark background from the ambient color
-    bg.setAttribute('fill', applyLighting(state.ambientLight, 'deepShadow')); 
+    // Update the background to reflect ambient lighting
+    bg.style.backgroundColor = applyLighting(state.ambientLight, 'deepShadow');
   }
 
   const sources = [
@@ -460,35 +466,22 @@ function updateLightingPreview() {
   ];
 
   sources.forEach(src => {
-    const els = {
-      base: document.querySelectorAll(`.fill_base_${src.id}`),
-      shadow: document.querySelectorAll(`.fill_shadow_${src.id}`),
-      deepShadow: document.querySelectorAll(`.fill_deepShadow_${src.id}`),
-      bounce: document.querySelectorAll(`.fill_bounce_${src.id}`),
-      light: document.querySelectorAll(`.fill_light_${src.id}`),
-      highlight: document.querySelectorAll(`.fill_highlight_${src.id}`)
-    };
+    const sphere = document.getElementById(`sphere_${src.id}`);
+    if (!sphere) return;
 
-    let colors = {
-      base: src.hex,
-      shadow: applyLighting(src.hex, 'shadow'),
-      deepShadow: applyLighting(src.hex, 'deepShadow'),
-      bounce: applyLighting(src.hex, 'bounce'),
-      light: applyLighting(src.hex, 'light'),
-      highlight: applyLighting(src.hex, 'highlight')
-    };
-
+    let targetHex = src.hex;
     if (src.id === 'sk') {
-      // Soften the base albedo for skin preview object
+      // Soften the base albedo for skin preview object (Blush Base)
       const skinLch = rgbToOklch(hexToRgb(src.hex));
-      colors.base = oklchToHex(skinLch.l * 0.95, skinLch.c, mixHue(skinLch.h, 20, 0.4));
+      targetHex = oklchToHex(skinLch.l * 0.95, skinLch.c, mixHue(skinLch.h, 20, 0.4));
     }
 
-    Object.keys(els).forEach(layerName => {
-      els[layerName].forEach(node => {
-        node.setAttribute('fill', colors[layerName]);
-      });
-    });
+    // Apply multiple dynamic gradient layers via CSS variables
+    sphere.style.setProperty('--highlight', applyLighting(targetHex, 'highlight'));
+    sphere.style.setProperty('--bounce', applyLighting(targetHex, 'bounce'));
+    sphere.style.setProperty('--litBase', applyLighting(targetHex, 'litBase')); // Integrated base, not raw albedo!
+    sphere.style.setProperty('--shadow', applyLighting(targetHex, 'shadow'));
+    sphere.style.setProperty('--deepShadow', applyLighting(targetHex, 'deepShadow'));   
   });
 }
 
@@ -521,12 +514,13 @@ function renderVariationGrid() {
     
     // Instead of naive HSL manipulation, use Physics-Based Lighting Simulation.
     const vars = [
-      { n: 'Highlight (Key+Sky)', hx: applyLighting(src.hex, 'highlight') },
+      { n: 'Highlight (Key)', hx: applyLighting(src.hex, 'highlight') },
       { n: 'Light (Key)', hx: applyLighting(src.hex, 'light') },
-      { n: 'Albedo (Base)', hx: src.hex },
+      { n: 'Base (Lit)', hx: applyLighting(src.hex, 'litBase') },
+      { n: 'Albedo (Raw)', hx: src.hex },
       { n: 'Bounce (Sky)', hx: applyLighting(src.hex, 'bounce') },
       { n: 'Shadow (Amb)', hx: applyLighting(src.hex, 'shadow') },
-      { n: 'Deep Shadow (Amb)', hx: applyLighting(src.hex, 'deepShadow') }
+      { n: 'Deep Shadow', hx: applyLighting(src.hex, 'deepShadow') }
     ];
 
     vars.forEach(v => col.appendChild(createMiniChip(v.hx, v.n)));
