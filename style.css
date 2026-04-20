@@ -4,6 +4,7 @@
   --bg-card: #121212;
   --bg-input: #1a1a1a;
   --border-main: #2a2a2a;
+  --fader-track: #ffffff;
   --border-active: #ff0000;
   --text-main: #ffffff;
   --text-sub: #999999;
@@ -18,8 +19,9 @@
 [data-theme="light"] {
   --bg-app: #f0f0f0;
   --bg-card: #ffffff;
-  --bg-input: #e0e0e0;
+  --bg-input: #ffffff;
   --border-main: #cccccc;
+  --fader-track: #000000;
   --text-main: #000000;
   --text-sub: #555555;
   --dot-pattern: radial-gradient(#dddddd 1px, transparent 1px);
@@ -149,22 +151,47 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
   pointer-events: auto; /* Essential for interaction */
 }
 .slider-container { 
-  height: 240px; /* Increase height to fit button */
+  height: 240px; 
   display: flex; 
   flex-direction: column; 
   align-items: center; 
   justify-content: space-between;
   padding: 0.5rem 0;
+  position: relative;
 }
+
+/* DJ Controller Style Fader */
 .vertical-range.industrial { 
-  -webkit-appearance: slider-vertical; /* Standard for WebKit */
-  width: 20px; 
-  height: 140px; 
-  background: var(--bg-input);
-  border: 1px solid var(--border-main);
-  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  width: 140px; /* Length of the fader */
+  height: 2px;  /* Thin slot */
+  background: var(--fader-track);
+  transform: rotate(-90deg);
+  transform-origin: center;
+  position: absolute;
+  top: 100px;
   cursor: pointer;
 }
+
+/* Track */
+.vertical-range.industrial::-webkit-slider-runnable-track {
+  width: 100%; height: 2px; background: var(--fader-track);
+}
+
+/* DJ Fader Cap */
+.vertical-range.industrial::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;    /* Height of cap */
+  height: 32px;   /* Width of cap (since rotated) */
+  background: var(--bg-input);
+  border: 1px solid var(--text-main);
+  border-radius: 2px;
+  cursor: grab;
+  margin-top: -15px; /* Precision centering */
+}
+.vertical-range.industrial::-webkit-slider-thumb:active { cursor: grabbing; background-color: var(--bg-card); }
 
 .reset-btn {
   background: var(--text-main);
@@ -177,6 +204,7 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
   cursor: pointer;
   letter-spacing: 1px;
   text-align: center;
+  z-index: 10;
 }
 .reset-btn:hover { background: var(--accent-primary); border-color: var(--accent-primary); color: white; }
 

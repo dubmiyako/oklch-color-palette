@@ -46,10 +46,14 @@ const MAX_CHROMA = 0.37;
 
 // --- Initialization ---
 function init() {
+  htmlEl.setAttribute('data-theme', 'light');
   renderSkinBaseOptions();
   applyHarmony();
   drawColorWheel();
   updateUI();
+  // Sync icons for light mode (show moon to switch to dark)
+  themeIconSun.classList.add('hidden');
+  themeIconMoon.classList.remove('hidden');
 
   // Pickers
   themePicker1.addEventListener('input', (e) => {
