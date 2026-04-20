@@ -9,7 +9,7 @@ const skinPaletteDisplay = document.getElementById('skinPaletteDisplay');
 const variationGrid = document.getElementById('variationGrid');
 
 const btnExportPng = document.getElementById('btnExportPng');
-const btnExportAco = document.getElementById('btnExportAco');
+const btnExportCls = document.getElementById('btnExportCls');
 const themeToggle = document.getElementById('themeToggle');
 const themeIconSun = document.getElementById('themeIconSun');
 const themeIconMoon = document.getElementById('themeIconMoon');
@@ -107,7 +107,7 @@ function init() {
 
   themeToggle.addEventListener('click', toggleTheme);
   btnExportPng.addEventListener('click', exportAsPng);
-  btnExportAco.addEventListener('click', exportAsAco);
+  btnExportCls.addEventListener('click', exportAsCls);
   btnResetWheel.addEventListener('click', resetWheel);
 }
 
@@ -429,26 +429,90 @@ async function exportAsPng() {
   }
 }
 
-async function exportAsAco() {
-  const colors = [];
-  document.querySelectorAll('.skin-chip, .mini-chip').forEach(chip => {
-    const rgb = chip.style.backgroundColor.match(/\d+/g).map(Number), hex = rgbToHex(...rgb);
-    if (!colors.some(c => c.hex === hex)) colors.push({ hex });
-  });
-  const buffer = new ArrayBuffer(8 + colors.length * 10 + colors.length * 20); const view = new DataView(buffer); let off = 0;
-  view.setUint16(off, 1); off += 2; view.setUint16(off, colors.length); off += 2;
+async function exportAsCls() {
+  const getGroupColors = (selector) => {
+    const arr = [];
+    document.querySelectorAll(selector).forEach(chip => {
+      const rgbStr = window.getComputedStyle(chip).backgroundColor;
+      let match = [];
+      const tmp = rgbStr.replace(/[^0-9,]/g, '').split(',');
+      if (tmp.length >= 3) {
+        match = [tmp[0], tmp[1], tmp[2]];
+      }
+      if (!match || match.length < 3) return;
+      const rgb = match.map(Number);
+      const hex = rgbToHex(...rgb);
+      const lch = rgbToOklch(hexToRgb(hex));
+      if (!arr.some(c => c.hex === hex)) {
+        arr.push({ hex, rgb, l: lch.l });
+      }
+    });
+    // Sort by lightness descending (brightest to darkest)
+    return arr.sort((a, b) => b.l - a.l);
+  };
+
+  // Group 1: Skin, Group 2: T1 Variations, Group 3: T2 Variations, Group 4: AC Variations
+  const colors = [
+    ...getGroupColors('#skinPaletteDisplay .skin-chip'),
+    ...getGroupColors('#variationGrid .variation-column:nth-child(1) .mini-chip'),
+    ...getGroupColors('#variationGrid .variation-column:nth-child(2) .mini-chip'),
+    ...getGroupColors('#variationGrid .variation-column:nth-child(3) .mini-chip')
+  ];
+
+  if (colors.length === 0) return showToast('ERROR: NO_COLORS_FOUND');
+
+  const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const paletteName = `OKLCH_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
+  
+  const asciiName = paletteName;
+  const utf8Name = paletteName;
+
+  const encoder = new TextEncoder();
+  const asciiBytes = encoder.encode(asciiName);
+  const utf8Bytes = encoder.encode(utf8Name);
+
+  const metaLen = asciiBytes.length + utf8Bytes.length + 8;
+  const headerSize = 4 + 2 + 4 + 2 + asciiBytes.length + 4 + 2 + utf8Bytes.length + 4 + 4 + 4;
+  const colorDataSize = colors.length * 12;
+  const buffer = new ArrayBuffer(headerSize + colorDataSize);
+  const view = new DataView(buffer);
+  let off = 0;
+
+  view.setUint8(off++, 83); // 'S'
+  view.setUint8(off++, 76); // 'L'
+  view.setUint8(off++, 67); // 'C'
+  view.setUint8(off++, 67); // 'C'
+
+  view.setUint16(off, 256, true); off += 2;
+  view.setUint32(off, metaLen, true); off += 4;
+  
+  view.setUint16(off, asciiBytes.length, true); off += 2;
+  for(let i = 0; i < asciiBytes.length; i++) view.setUint8(off++, asciiBytes[i]);
+  
+  view.setUint32(off, 0, true); off += 4;
+  
+  view.setUint16(off, utf8Bytes.length, true); off += 2;
+  for(let i = 0; i < utf8Bytes.length; i++) view.setUint8(off++, utf8Bytes[i]);
+  
+  view.setUint32(off, 4, true); off += 4; // channels (RGBA)
+  view.setUint32(off, colors.length, true); off += 4;
+  view.setUint32(off, colorDataSize, true); off += 4;
+
   colors.forEach(c => {
-    const r = parseInt(c.hex.slice(1,3), 16), g = parseInt(c.hex.slice(3,5), 16), b = parseInt(c.hex.slice(5,7), 16);
-    view.setUint16(off, 0); off += 2; view.setUint16(off, r << 8); off += 2; view.setUint16(off, g << 8); off += 2; view.setUint16(off, b << 8); off += 2; view.setUint16(off, 0); off += 2;
+    view.setUint32(off, 8, true); off += 4;
+    view.setUint8(off++, c.rgb[0]);
+    view.setUint8(off++, c.rgb[1]);
+    view.setUint8(off++, c.rgb[2]);
+    view.setUint8(off++, 255);
+    view.setUint32(off, 0, true); off += 4;
   });
-  view.setUint16(off, 2); off += 2; view.setUint16(off, colors.length); off += 2;
-  colors.forEach((c, i) => {
-    const r = parseInt(c.hex.slice(1,3), 16), g = parseInt(c.hex.slice(3,5), 16), b = parseInt(c.hex.slice(5,7), 16);
-    view.setUint16(off, 0); off += 2; view.setUint16(off, r << 8); off += 2; view.setUint16(off, g << 8); off += 2; view.setUint16(off, b << 8); off += 2; view.setUint16(off, 0); off += 2;
-    const n = "Color " + i + "\0"; view.setUint32(off, n.length); off += 4;
-    for(let j=0; j<n.length; j++) { view.setUint16(off, n.charCodeAt(j)); off += 2; }
-  });
-  const blob = new Blob([buffer], { type: 'application/octet-stream' }); const link = document.createElement('a'); link.download = 'industrial.aco'; link.href = URL.createObjectURL(blob); link.click();
+
+  const blob = new Blob([buffer], { type: 'application/octet-stream' }); 
+  const link = document.createElement('a'); 
+  link.download = `${paletteName}.cls`; 
+  link.href = URL.createObjectURL(blob); 
+  link.click();
+  showToast('SYSTEM: CLS_EXPORT_SUCCESS');
 }
 
 if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
