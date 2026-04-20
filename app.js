@@ -312,7 +312,13 @@ function renderVariationGrid() {
       { n: 'Low-C Light', l: 0.95, c: 0.02, h: lch.h },
       { n: 'Cold Mix', l: lch.l, c: lch.c, h: (lch.h + 180) % 360 }
     ];
-    vars.forEach(v => col.appendChild(createMiniChip(oklchToHex(v.l, v.c, v.h), v.n)));
+
+    // Originalを先頭に固定し、残りを明度順（降順）でソート
+    const original = vars.shift();
+    vars.sort((a, b) => b.l - a.l);
+    const sortedVars = [original, ...vars];
+
+    sortedVars.forEach(v => col.appendChild(createMiniChip(oklchToHex(v.l, v.c, v.h), v.n)));
     variationGrid.appendChild(col);
   });
 }

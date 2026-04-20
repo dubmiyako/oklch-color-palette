@@ -6,7 +6,7 @@
   --border-main: #2a2a2a;
   --border-active: #ff0000;
   --text-main: #ffffff;
-  --text-sub: #666666;
+  --text-sub: #999999;
   --accent-primary: #ff0000;
   --accent-secondary: #fbbf24;
   --font-mono: 'Space Mono', monospace;
@@ -21,7 +21,7 @@
   --bg-input: #e0e0e0;
   --border-main: #cccccc;
   --text-main: #000000;
-  --text-sub: #999999;
+  --text-sub: #555555;
   --dot-pattern: radial-gradient(#dddddd 1px, transparent 1px);
 }
 
