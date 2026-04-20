@@ -103,7 +103,12 @@ function init() {
   // Wheel Interactions (Migrated to Pointer Events for Pen/Touch/Hover robustness)
   wheelHandles.addEventListener('pointerdown', startDrag);
   window.addEventListener('pointermove', drag);
-  const endDrag = () => { activeHandle = null; updateUI(); };
+  const endDrag = () => { 
+    if (activeHandle) {
+      activeHandle = null; 
+      updateUI(); 
+    }
+  };
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('pointercancel', endDrag);
 
