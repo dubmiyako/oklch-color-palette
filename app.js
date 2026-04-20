@@ -223,6 +223,33 @@ function startDrag(e) {
   if (e.target.classList.contains('handle')) {
     activeHandle = e.target.id;
     if (e.cancelable) e.preventDefault();
+    return;
+  }
+  
+  // Expand implicit touch target for iPad/Mobile (proximity detection)
+  if (e.type === 'touchstart' || e.type === 'mousedown') {
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    let closestHandle = null;
+    let minDist = 30; // Implicit hit-box radius in pixels
+    
+    document.querySelectorAll('.handle').forEach(handle => {
+      const hRect = handle.getBoundingClientRect();
+      const hx = hRect.left + hRect.width / 2;
+      const hy = hRect.top + hRect.height / 2;
+      const dist = Math.sqrt(Math.pow(clientX - hx, 2) + Math.pow(clientY - hy, 2));
+      
+      if (dist < minDist) {
+        minDist = dist;
+        closestHandle = handle.id;
+      }
+    });
+
+    if (closestHandle) {
+      activeHandle = closestHandle;
+      if (e.cancelable) e.preventDefault();
+    }
   }
 }
 function drag(e) {
