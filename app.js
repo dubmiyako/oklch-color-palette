@@ -121,6 +121,12 @@ function applyLighting(baseHex, type) {
       c = base.c * 0.9 + (amb.c * 0.1);
       h = mixHue(base.h, amb.h, 0.15); // Pull hue 15% towards ambient for natural integration
       break;
+    case 'groundBounce': // Reflected light from floor
+      // Mix of albedo and ambient (ground) color, shifted to be slightly brighter but still a bounce
+      l = Math.min(0.9, base.l * 0.6 + (amb.l * 0.4));
+      c = base.c * 0.4 + amb.c * 0.6;
+      h = mixHue(base.h, amb.h, 0.9); // Very strong pull to ground ambient hue
+      break;
   }
   return oklchToHex(l, c, h);
 }
@@ -481,6 +487,7 @@ function updateLightingPreview() {
     // Apply multiple dynamic gradient layers via CSS variables
     sphere.style.setProperty('--highlight', applyLighting(targetHex, 'highlight'));
     sphere.style.setProperty('--bounce', applyLighting(targetHex, 'bounce'));
+    sphere.style.setProperty('--groundBounce', applyLighting(targetHex, 'groundBounce')); // New!
     sphere.style.setProperty('--litBase', applyLighting(targetHex, 'litBase')); // Integrated base, not raw albedo!
     sphere.style.setProperty('--shadow', applyLighting(targetHex, 'shadow'));
     sphere.style.setProperty('--deepShadow', applyLighting(targetHex, 'deepShadow'));   
@@ -554,12 +561,15 @@ function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); 
 // Exports
 // Exports
 async function exportAsPng() {
+  const scale = 2; // High-Res Scaling
   const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
   const W = 600; 
   let curY = 0;
   
-  canvas.width = W; 
-  canvas.height = 1000; 
+  // Set physical dimensions to 2x, but use logic scale (600px base)
+  canvas.width = W * scale; 
+  canvas.height = 2000 * scale; 
+  ctx.scale(scale, scale);
   
   function getContrastColor(hex) {
     const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
@@ -569,15 +579,65 @@ async function exportAsPng() {
 
   function drawTiledChip(x, y, w, h, hex, label) {
     ctx.fillStyle = hex; ctx.fillRect(x, y, w, h);
-    // Overlay Hex
     ctx.fillStyle = getContrastColor(hex);
-    ctx.font = 'bold 9px monospace';
-    ctx.textAlign = 'center';
+    ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
     ctx.fillText(hex.toUpperCase(), x + w/2, y + h - 15);
     if (label) {
       ctx.font = '7px monospace';
       ctx.fillText(label.toUpperCase(), x + w/2, y + h - 6);
     }
+  }
+
+  function drawSphere(cx, cy, r, hex) {
+    const hexToRgba = (h, a) => {
+      const r_val = parseInt(h.slice(1,3), 16);
+      const g_val = parseInt(h.slice(3,5), 16);
+      const b_val = parseInt(h.slice(5,7), 16);
+      return `rgba(${r_val},${g_val},${b_val},${a})`;
+    };
+    
+    const cLit = applyLighting(hex, 'litBase');
+    const cShd = applyLighting(hex, 'shadow');
+    const cDeep = applyLighting(hex, 'deepShadow');
+    const cHi = applyLighting(hex, 'highlight');
+    const cBnc = applyLighting(hex, 'bounce');
+    const cGb = applyLighting(hex, 'groundBounce');
+
+    // 1. Core Sphere (Base to Deep Shadow)
+    const baseGrad = ctx.createRadialGradient(cx - r*0.2, cy - r*0.2, r*0.1, cx, cy, r);
+    baseGrad.addColorStop(0, cLit);
+    baseGrad.addColorStop(0.5, cShd);
+    baseGrad.addColorStop(1.0, cDeep);
+    ctx.fillStyle = baseGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+
+    // 2. Rim Light / Sky Bounce
+    const sbGrad = ctx.createRadialGradient(cx + r*0.5, cy + r*0.5, 0, cx + r*0.5, cy + r*0.5, r*0.9);
+    sbGrad.addColorStop(0, hexToRgba(cBnc, 0.45));
+    sbGrad.addColorStop(1, hexToRgba(cBnc, 0));
+    ctx.fillStyle = sbGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+
+    // 3. Ground Bounce
+    const gbGrad = ctx.createRadialGradient(cx, cy + r*0.8, 0, cx, cy + r*0.8, r*0.8);
+    gbGrad.addColorStop(0, hexToRgba(cGb, 0.35));
+    gbGrad.addColorStop(1, hexToRgba(cGb, 0));
+    ctx.fillStyle = gbGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+
+    // 4. Highlight
+    const hGrad = ctx.createRadialGradient(cx - r*0.4, cy - r*0.4, 0, cx - r*0.4, cy - r*0.4, r*0.7);
+    hGrad.addColorStop(0, hexToRgba(cHi, 0.8));
+    hGrad.addColorStop(1, hexToRgba(cHi, 0));
+    ctx.fillStyle = hGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    
+    // 5. Inset Shadow Overlay
+    const insetGrad = ctx.createRadialGradient(cx, cy, r*0.75, cx, cy, r);
+    insetGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    insetGrad.addColorStop(1, hexToRgba(cDeep, 0.5));
+    ctx.fillStyle = insetGrad;
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
   }
 
   function getHex(el) {
@@ -586,54 +646,73 @@ async function exportAsPng() {
     return rgbToHex(...rgb);
   }
 
-  // Header Area (Compact)
+  // Header
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, 40);
-  ctx.fillStyle = '#FF0000'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'left';
-  ctx.fillText('INDUSTRIAL PALETTE - TILED GRID', 15, 25);
+  ctx.fillStyle = '#FF0000'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('INDUSTRIAL LIGHTING STUDIO - HIGH RES EXPORT', 15, 25);
   curY = 40;
 
-  // --- SOURCE COLORS (3 across) ---
+  // --- 04_SCENE_PREVIEW (New Section) ---
+  const sceneH = 220;
+  const bgGrad = ctx.createLinearGradient(0, curY, 0, curY + sceneH);
+  bgGrad.addColorStop(0, applyLighting(state.skyLight, 'bounce'));
+  bgGrad.addColorStop(1, applyLighting(state.ambientLight, 'shadow'));
+  ctx.fillStyle = bgGrad; ctx.fillRect(0, curY, W, sceneH);
+
+  const spheres = [
+    { label: 'PRIMARY (T1)', hex: state.theme1, x: 100 },
+    { label: 'AMBIENT (T2)', hex: state.theme2, x: 230 },
+    { label: 'ACCENT (AC)', hex: state.accent, x: 360 },
+    { label: 'SKIN BASE', hex: state.skinBase, x: 490 }
+  ];
+
+  spheres.forEach(s => {
+    drawSphere(s.x, curY + 90, 55, s.hex);
+    ctx.fillStyle = '#FFFFFF'; ctx.font = '7px monospace'; ctx.textAlign = 'center';
+    ctx.fillText(s.label, s.x, curY + 175);
+  });
+  curY += sceneH;
+
+  // --- SOURCE COLORS ---
   const sourceHexes = [state.theme1, state.theme2, state.accent];
   const sLabels = ['PRIMARY(T1)', 'AMBIENT(T2)', 'ACCENT(AC)'];
-  sourceHexes.forEach((hex, i) => drawTiledChip(i * 200, curY, 200, 100, hex, sLabels[i]));
-  curY += 100;
+  sourceHexes.forEach((hex, i) => drawTiledChip(i * 200, curY, 200, 60, hex, sLabels[i]));
+  curY += 60;
 
-  // --- ATMOSPHERIC_SKIN (5 across) ---
+  // --- ATMOSPHERIC_SKIN ---
   const skinTargetNodes = document.querySelectorAll('#skinPaletteDisplay .skin-chip');
   const skinLabels = ['BASE', 'S1(ENV1)', 'S2(ENV2)', 'BLUSH', 'HIGHLIGHT'];
   skinTargetNodes.forEach((el, i) => {
-    if (i < 5) drawTiledChip(i * 120, curY, 120, 80, getHex(el), skinLabels[i]);
+    if (i < 5) drawTiledChip(i * 120, curY, 120, 60, getHex(el), skinLabels[i]);
   });
-  curY += 80;
+  curY += 60;
 
-  // --- VARIATIONS (3 columns x 10 rows) ---
+  // --- VARIATIONS ---
   const columns = document.querySelectorAll('#variationGrid .variation-column');
-  const colW = 200;
-  const rowH = 65;
+  const colW = 200, rowH = 50;
   columns.forEach((col, colIdx) => {
     const chips = Array.from(col.querySelectorAll('.mini-chip'));
     chips.forEach((cEl, rowIdx) => {
       const hex = getHex(cEl);
-      const label = cEl.nextElementSibling?.textContent || '';
-      drawTiledChip(colIdx * colW, curY + rowIdx * rowH, colW, rowH, hex, label);
+      const lText = cEl.nextElementSibling?.textContent || '';
+      drawTiledChip(colIdx * colW, curY + rowIdx * rowH, colW, rowH, hex, lText);
     });
   });
 
-  // Dynamic Height Adjustment based on final Y
-  const finalH = curY + (10 * rowH);
+  const finalLogicH = curY + (10 * rowH);
+  const finalPhysicalH = finalLogicH * scale;
   
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = W * scale; tempCanvas.height = finalPhysicalH;
+  const tCtx = tempCanvas.getContext('2d');
+  tCtx.drawImage(canvas, 0, 0);
+
   const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
-  const paletteName = `OKLCH_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
-  
-  if (canvas.height !== finalH) {
-    const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = canvas.width; tempCanvas.height = finalH;
-    const tCtx = tempCanvas.getContext('2d');
-    tCtx.drawImage(canvas, 0, 0);
-    const link = document.createElement('a'); link.download = `${paletteName}.png`; link.href = tempCanvas.toDataURL('image/png'); link.click();
-  } else {
-    const link = document.createElement('a'); link.download = `${paletteName}.png`; link.href = canvas.toDataURL('image/png'); link.click();
-  }
+  const paletteName = `OKLCH_LIT_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
+  const link = document.createElement('a'); 
+  link.download = `${paletteName}.png`; 
+  link.href = tempCanvas.toDataURL('image/png'); 
+  link.click();
 }
 
 async function exportAsCls() {

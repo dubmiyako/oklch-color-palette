@@ -297,6 +297,7 @@ input[type="color"] { width: 36px; height: 26px; border: 1px solid var(--border-
   */
   background: 
     radial-gradient(circle at 30% 30%, var(--highlight) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, var(--groundBounce) 0%, transparent 45%),
     radial-gradient(circle at 75% 75%, var(--bounce) 0%, transparent 45%),
     radial-gradient(circle at 45% 45%, var(--litBase) 20%, var(--shadow) 70%, var(--deepShadow) 100%);
   /* Strong internal drop shadow for 3D depth and outer floor shadow */
