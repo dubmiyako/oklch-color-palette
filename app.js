@@ -348,22 +348,85 @@ function copyToClipboard(text) {
 function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 1500); }
 
 // Exports
+// Exports
+// Exports
 async function exportAsPng() {
-  const colors = [];
-  document.querySelectorAll('.skin-chip, .mini-chip').forEach(chip => {
-    const rgb = chip.style.backgroundColor.match(/\d+/g).map(Number), hex = rgbToHex(...rgb);
-    if (!colors.some(c => c.hex === hex)) colors.push({ hex });
-  });
   const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
-  const chipSize = 80, padding = 15, cols = 8, rows = Math.ceil(colors.length / cols);
-  canvas.width = cols * (chipSize + padding) + padding; canvas.height = rows * (chipSize + padding) + padding + 50;
-  ctx.fillStyle = '#0a0a0a'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#ff0000'; ctx.font = 'bold 16px monospace'; ctx.fillText('INDUSTRIAL PRO PALETTE', padding, 35);
-  colors.forEach((c, i) => {
-    const col = i % cols, row = Math.floor(i / cols), x = padding + col * (chipSize + padding), y = 60 + row * (chipSize + padding);
-    ctx.fillStyle = c.hex; ctx.fillRect(x, y, chipSize, chipSize);
+  const W = 600; 
+  let curY = 0;
+  
+  canvas.width = W; 
+  canvas.height = 1000; 
+  
+  function getContrastColor(hex) {
+    const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+  }
+
+  function drawTiledChip(x, y, w, h, hex, label) {
+    ctx.fillStyle = hex; ctx.fillRect(x, y, w, h);
+    // Overlay Hex
+    ctx.fillStyle = getContrastColor(hex);
+    ctx.font = 'bold 9px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(hex.toUpperCase(), x + w/2, y + h - 15);
+    if (label) {
+      ctx.font = '7px monospace';
+      ctx.fillText(label.toUpperCase(), x + w/2, y + h - 6);
+    }
+  }
+
+  function getHex(el) {
+    const rgbStr = window.getComputedStyle(el).backgroundColor;
+    const rgb = rgbStr.match(/\d+/g).map(Number);
+    return rgbToHex(...rgb);
+  }
+
+  // Header Area (Compact)
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, 40);
+  ctx.fillStyle = '#FF0000'; ctx.font = 'bold 14px monospace'; ctx.textAlign = 'left';
+  ctx.fillText('INDUSTRIAL PALETTE - TILED GRID', 15, 25);
+  curY = 40;
+
+  // --- SOURCE COLORS (3 across) ---
+  const sourceHexes = [state.theme1, state.theme2, state.accent];
+  const sLabels = ['PRIMARY(T1)', 'AMBIENT(T2)', 'ACCENT(AC)'];
+  sourceHexes.forEach((hex, i) => drawTiledChip(i * 200, curY, 200, 100, hex, sLabels[i]));
+  curY += 100;
+
+  // --- ATMOSPHERIC_SKIN (5 across) ---
+  const skinTargetNodes = document.querySelectorAll('#skinPaletteDisplay .skin-chip');
+  const skinLabels = ['BASE', 'S1(ENV1)', 'S2(ENV2)', 'BLUSH', 'HIGHLIGHT'];
+  skinTargetNodes.forEach((el, i) => {
+    if (i < 5) drawTiledChip(i * 120, curY, 120, 80, getHex(el), skinLabels[i]);
   });
-  const link = document.createElement('a'); link.download = 'industrial-palette.png'; link.href = canvas.toDataURL('image/png'); link.click();
+  curY += 80;
+
+  // --- VARIATIONS (3 columns x 10 rows) ---
+  const columns = document.querySelectorAll('#variationGrid .variation-column');
+  const colW = 200;
+  const rowH = 65;
+  columns.forEach((col, colIdx) => {
+    const chips = Array.from(col.querySelectorAll('.mini-chip'));
+    chips.forEach((cEl, rowIdx) => {
+      const hex = getHex(cEl);
+      const label = cEl.nextElementSibling?.textContent || '';
+      drawTiledChip(colIdx * colW, curY + rowIdx * rowH, colW, rowH, hex, label);
+    });
+  });
+
+  // Dynamic Height Adjustment based on final Y
+  const finalH = curY + (10 * rowH);
+  if (canvas.height !== finalH) {
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = canvas.width; tempCanvas.height = finalH;
+    const tCtx = tempCanvas.getContext('2d');
+    tCtx.drawImage(canvas, 0, 0);
+    const link = document.createElement('a'); link.download = 'industrial-palette-tiled.png'; link.href = tempCanvas.toDataURL('image/png'); link.click();
+  } else {
+    const link = document.createElement('a'); link.download = 'industrial-palette-tiled.png'; link.href = canvas.toDataURL('image/png'); link.click();
+  }
 }
 
 async function exportAsAco() {
