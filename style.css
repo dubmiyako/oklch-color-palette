@@ -251,7 +251,9 @@ input[type="color"] { width: 36px; height: 26px; border: 1px solid var(--border-
 /* Expand the gradient container and remove the wrapper card's white background */
 .preview-section { 
   background: transparent !important; 
-  border: none !important; 
+  border-top: none !important;
+  border-left: none !important;
+  border-bottom: none !important;
   box-shadow: none !important; 
 }
 .preview-grid-container {
@@ -344,6 +346,9 @@ input[type="color"] { width: 36px; height: 26px; border: 1px solid var(--border-
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-main);
+  z-index: 100;
 }
 .credits {
   font-size: 0.55rem;
