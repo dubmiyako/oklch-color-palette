@@ -26,7 +26,7 @@ const htmlEl = document.documentElement;
 
 // Lighting Controls
 const lightingPreset = document.getElementById('lightingPreset');
-const customLightingPanel = document.getElementById('customLightingPanel');
+const lightingControlsPanel = document.getElementById('lightingControlsPanel');
 const keyLightPicker = document.getElementById('keyLightPicker');
 const ambientLightPicker = document.getElementById('ambientLightPicker');
 const skyLightPicker = document.getElementById('skyLightPicker');
@@ -88,28 +88,29 @@ function applyLighting(baseHex, type) {
 
   switch(type) {
     case 'highlight': // Key Light + Sky Bounce
-      l = Math.min(0.98, base.l + (key.l * 0.3) + 0.05);
-      c = Math.min(MAX_CHROMA, base.c + (key.c * 0.1));
-      h = mixHue(base.h, key.h, 0.4);
+      l = Math.min(0.98, base.l + (key.l * 0.4) + 0.1);
+      c = Math.min(MAX_CHROMA, base.c * 0.8 + (key.c * 0.6));
+      h = mixHue(base.h, key.h, 0.7); // Huge pull to key light (70%)
       break;
     case 'light': // Key Light
-      l = Math.min(0.95, base.l + (key.l * 0.15));
-      h = mixHue(base.h, key.h, 0.2);
+      l = Math.min(0.95, base.l + (key.l * 0.25));
+      c = base.c * 0.9 + (key.c * 0.3);
+      h = mixHue(base.h, key.h, 0.5); // Moderate pull to key light (50%)
       break;
     case 'shadow': // Ambient Light
-      l = Math.max(0.05, base.l * 0.6);
-      c = base.c * 0.9;
-      h = mixHue(base.h, amb.h, 0.6);
+      l = Math.max(0.05, base.l * 0.5);
+      c = base.c * 0.6 + amb.c * 0.5; // High ambient saturation takeover
+      h = mixHue(base.h, amb.h, 0.85); // Very strong pull to ambient light (85%)
       break;
     case 'deepShadow': // Deep Ambient Light
-      l = Math.max(0.02, base.l * 0.4);
-      c = base.c * 0.8;
-      h = mixHue(base.h, amb.h, 0.8);
+      l = Math.max(0.02, base.l * 0.3);
+      c = base.c * 0.4 + amb.c * 0.7;
+      h = mixHue(base.h, amb.h, 0.95); // Almost entirely the ambient light hue (95%)
       break;
     case 'bounce': // Sky Ambient
-      l = Math.min(0.95, base.l * 0.7 + (sky.l * 0.2));
-      c = base.c * 0.85;
-      h = mixHue(base.h, sky.h, 0.5);
+      l = Math.min(0.95, base.l * 0.6 + (sky.l * 0.4));
+      c = base.c * 0.5 + sky.c * 0.6;
+      h = mixHue(base.h, sky.h, 0.8); // Strong pull to bouncy sky light (80%)
       break;
   }
   return oklchToHex(l, c, h);
@@ -130,10 +131,7 @@ function init() {
   if (lightingPreset) {
     lightingPreset.addEventListener('change', (e) => {
       state.lightingPreset = e.target.value;
-      if (state.lightingPreset === 'custom') {
-        customLightingPanel.style.display = 'block';
-      } else {
-        customLightingPanel.style.display = 'none';
+      if (state.lightingPreset !== 'custom') {
         if (LightingPresets[state.lightingPreset]) {
           const p = LightingPresets[state.lightingPreset];
           state.keyLight = p.key;
@@ -152,6 +150,9 @@ function init() {
     if (picker) {
       picker.addEventListener('input', (e) => {
         state[lightField] = e.target.value;
+        // Auto-switch to custom preset when tweaking lights manually
+        lightingPreset.value = 'custom';
+        state.lightingPreset = 'custom';
         updateUI();
       });
     }
