@@ -89,7 +89,7 @@ function applyLighting(baseHex, type) {
 
   let l = base.l, c = base.c, h = base.h;
 
-  switch(type) {
+  switch (type) {
     case 'highlight': // Key Light + Sky Bounce
       l = Math.min(0.98, base.l + (key.l * 0.4) + 0.1);
       c = Math.min(MAX_CHROMA, base.c * 0.8 + (key.c * 0.6));
@@ -216,7 +216,7 @@ function init() {
     state.theme1 = oklchToHex(state.l, lch1.c, lch1.h);
     state.theme2 = oklchToHex(state.l, lch2.c, lch2.h);
     state.accent = oklchToHex(Math.min(1, state.l * 1.1), lchA.c, lchA.h);
-    
+
     drawColorWheel();
     updateUI();
   });
@@ -224,10 +224,10 @@ function init() {
   // Wheel Interactions (Migrated to Pointer Events for Pen/Touch/Hover robustness)
   wheelHandles.addEventListener('pointerdown', startDrag);
   window.addEventListener('pointermove', drag);
-  const endDrag = () => { 
+  const endDrag = () => {
     if (activeHandle) {
-      activeHandle = null; 
-      updateUI(); 
+      activeHandle = null;
+      updateUI();
     }
   };
   window.addEventListener('pointerup', endDrag);
@@ -361,21 +361,21 @@ function startDrag(e) {
     activeHandle = e.target.id;
     return;
   }
-  
+
   // Expand implicit touch target for iPad/Mobile (proximity detection)
   if (e.type === 'pointerdown') {
     const clientX = e.clientX;
     const clientY = e.clientY;
-    
+
     let closestHandle = null;
     let minDist = 30; // Implicit hit-box radius in pixels
-    
+
     document.querySelectorAll('.handle').forEach(handle => {
       const hRect = handle.getBoundingClientRect();
       const hx = hRect.left + hRect.width / 2;
       const hy = hRect.top + hRect.height / 2;
       const dist = Math.sqrt(Math.pow(clientX - hx, 2) + Math.pow(clientY - hy, 2));
-      
+
       if (dist < minDist) {
         minDist = dist;
         closestHandle = handle.id;
@@ -389,13 +389,13 @@ function startDrag(e) {
 }
 function drag(e) {
   if (!activeHandle) return;
-  
+
   // Clean up if pen/mouse is hovering without buttons pressed (failsafe)
   if (e.pointerType !== 'touch' && e.buttons === 0) {
     activeHandle = null;
     return;
   }
-  
+
   const rect = wheelCanvas.getBoundingClientRect();
   const clientX = e.clientX;
   const clientY = e.clientY;
@@ -490,7 +490,7 @@ function updateLightingPreview() {
     sphere.style.setProperty('--groundBounce', applyLighting(targetHex, 'groundBounce')); // New!
     sphere.style.setProperty('--litBase', applyLighting(targetHex, 'litBase')); // Integrated base, not raw albedo!
     sphere.style.setProperty('--shadow', applyLighting(targetHex, 'shadow'));
-    sphere.style.setProperty('--deepShadow', applyLighting(targetHex, 'deepShadow'));   
+    sphere.style.setProperty('--deepShadow', applyLighting(targetHex, 'deepShadow'));
   });
 }
 
@@ -500,11 +500,11 @@ function renderSkinPalette() {
   const blushHex = oklchToHex(skinLch.l * 0.95, Math.min(MAX_CHROMA, skinLch.c + 0.08), mixHue(skinLch.h, 20, 0.6));
 
   const palette = [
-    { name: 'Highlight (Key)', hex: applyLighting(state.skinBase, 'highlight') },
-    { name: 'Base (Albedo)', hex: state.skinBase },
-    { name: 'Blush (Albedo)', hex: blushHex },
-    { name: 'Shadow (Amb)', hex: applyLighting(state.skinBase, 'shadow') },
-    { name: 'Deep (Amb)', hex: applyLighting(state.skinBase, 'deepShadow') }
+    { name: 'Highlight', hex: applyLighting(state.skinBase, 'highlight') },
+    { name: 'Base', hex: state.skinBase },
+    { name: 'Blush', hex: blushHex },
+    { name: 'Shadow', hex: applyLighting(state.skinBase, 'shadow') },
+    { name: 'Deep', hex: applyLighting(state.skinBase, 'deepShadow') }
   ];
   skinPaletteDisplay.innerHTML = '';
   palette.forEach(c => skinPaletteDisplay.appendChild(createSkinChip(c.hex, c.name)));
@@ -513,22 +513,22 @@ function renderSkinPalette() {
 function renderVariationGrid() {
   variationGrid.innerHTML = '';
   const sources = [
-    { name: 'PRIMARY (T1)', hex: state.theme1 },
-    { name: 'AMBIENT (T2)', hex: state.theme2 },
-    { name: 'ACCENT (AC)', hex: state.accent }
+    { name: 'PRIMARY:T1', hex: state.theme1 },
+    { name: 'AMBIENT:T2', hex: state.theme2 },
+    { name: 'ACCENT:AC', hex: state.accent }
   ];
   sources.forEach(src => {
     const col = document.createElement('div'); col.className = 'variation-column';
     col.innerHTML = `<div class="column-header">${src.name}</div>`;
-    
+
     // Instead of naive HSL manipulation, use Physics-Based Lighting Simulation.
     const vars = [
-      { n: 'Highlight (Key)', hx: applyLighting(src.hex, 'highlight') },
-      { n: 'Light (Key)', hx: applyLighting(src.hex, 'light') },
-      { n: 'Base (Lit)', hx: applyLighting(src.hex, 'litBase') },
-      { n: 'Albedo (Raw)', hx: src.hex },
-      { n: 'Bounce (Sky)', hx: applyLighting(src.hex, 'bounce') },
-      { n: 'Shadow (Amb)', hx: applyLighting(src.hex, 'shadow') },
+      { n: 'Highlight', hx: applyLighting(src.hex, 'highlight') },
+      { n: 'Light', hx: applyLighting(src.hex, 'light') },
+      { n: 'Lit', hx: applyLighting(src.hex, 'litBase') },
+      { n: 'Albedo', hx: src.hex },
+      { n: 'Bounce', hx: applyLighting(src.hex, 'bounce') },
+      { n: 'Shadow', hx: applyLighting(src.hex, 'shadow') },
       { n: 'Deep Shadow', hx: applyLighting(src.hex, 'deepShadow') }
     ];
 
@@ -563,16 +563,16 @@ function showToast(msg) { toast.textContent = msg; toast.classList.add('show'); 
 async function exportAsPng() {
   const scale = 2; // High-Res Scaling
   const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
-  const W = 600; 
+  const W = 600;
   let curY = 0;
-  
+
   // Set physical dimensions to 2x, but use logic scale (600px base)
-  canvas.width = W * scale; 
-  canvas.height = 2000 * scale; 
+  canvas.width = W * scale;
+  canvas.height = 2000 * scale;
   ctx.scale(scale, scale);
-  
+
   function getContrastColor(hex) {
-    const r = parseInt(hex.slice(1,3), 16), g = parseInt(hex.slice(3,5), 16), b = parseInt(hex.slice(5,7), 16);
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
     const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
     return (yiq >= 128) ? '#000000' : '#FFFFFF';
   }
@@ -581,21 +581,21 @@ async function exportAsPng() {
     ctx.fillStyle = hex; ctx.fillRect(x, y, w, h);
     ctx.fillStyle = getContrastColor(hex);
     ctx.font = 'bold 9px monospace'; ctx.textAlign = 'center';
-    ctx.fillText(hex.toUpperCase(), x + w/2, y + h - 15);
+    ctx.fillText(hex.toUpperCase(), x + w / 2, y + h - 15);
     if (label) {
       ctx.font = '7px monospace';
-      ctx.fillText(label.toUpperCase(), x + w/2, y + h - 6);
+      ctx.fillText(label.toUpperCase(), x + w / 2, y + h - 6);
     }
   }
 
   function drawSphere(cx, cy, r, hex) {
     const hexToRgba = (h, a) => {
-      const r_val = parseInt(h.slice(1,3), 16);
-      const g_val = parseInt(h.slice(3,5), 16);
-      const b_val = parseInt(h.slice(5,7), 16);
+      const r_val = parseInt(h.slice(1, 3), 16);
+      const g_val = parseInt(h.slice(3, 5), 16);
+      const b_val = parseInt(h.slice(5, 7), 16);
       return `rgba(${r_val},${g_val},${b_val},${a})`;
     };
-    
+
     const cLit = applyLighting(hex, 'litBase');
     const cShd = applyLighting(hex, 'shadow');
     const cDeep = applyLighting(hex, 'deepShadow');
@@ -604,40 +604,40 @@ async function exportAsPng() {
     const cGb = applyLighting(hex, 'groundBounce');
 
     // 1. Core Sphere (Base to Deep Shadow)
-    const baseGrad = ctx.createRadialGradient(cx - r*0.2, cy - r*0.2, r*0.1, cx, cy, r);
+    const baseGrad = ctx.createRadialGradient(cx - r * 0.2, cy - r * 0.2, r * 0.1, cx, cy, r);
     baseGrad.addColorStop(0, cLit);
     baseGrad.addColorStop(0.5, cShd);
     baseGrad.addColorStop(1.0, cDeep);
     ctx.fillStyle = baseGrad;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
     // 2. Rim Light / Sky Bounce
-    const sbGrad = ctx.createRadialGradient(cx + r*0.5, cy + r*0.5, 0, cx + r*0.5, cy + r*0.5, r*0.9);
+    const sbGrad = ctx.createRadialGradient(cx + r * 0.5, cy + r * 0.5, 0, cx + r * 0.5, cy + r * 0.5, r * 0.9);
     sbGrad.addColorStop(0, hexToRgba(cBnc, 0.45));
     sbGrad.addColorStop(1, hexToRgba(cBnc, 0));
     ctx.fillStyle = sbGrad;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
     // 3. Ground Bounce
-    const gbGrad = ctx.createRadialGradient(cx, cy + r*0.8, 0, cx, cy + r*0.8, r*0.8);
+    const gbGrad = ctx.createRadialGradient(cx, cy + r * 0.8, 0, cx, cy + r * 0.8, r * 0.8);
     gbGrad.addColorStop(0, hexToRgba(cGb, 0.35));
     gbGrad.addColorStop(1, hexToRgba(cGb, 0));
     ctx.fillStyle = gbGrad;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
 
     // 4. Highlight
-    const hGrad = ctx.createRadialGradient(cx - r*0.4, cy - r*0.4, 0, cx - r*0.4, cy - r*0.4, r*0.7);
+    const hGrad = ctx.createRadialGradient(cx - r * 0.4, cy - r * 0.4, 0, cx - r * 0.4, cy - r * 0.4, r * 0.7);
     hGrad.addColorStop(0, hexToRgba(cHi, 0.8));
     hGrad.addColorStop(1, hexToRgba(cHi, 0));
     ctx.fillStyle = hGrad;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
-    
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
     // 5. Inset Shadow Overlay
-    const insetGrad = ctx.createRadialGradient(cx, cy, r*0.75, cx, cy, r);
+    const insetGrad = ctx.createRadialGradient(cx, cy, r * 0.75, cx, cy, r);
     insetGrad.addColorStop(0, 'rgba(0,0,0,0)');
     insetGrad.addColorStop(1, hexToRgba(cDeep, 0.5));
     ctx.fillStyle = insetGrad;
-    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
   }
 
   function getHex(el) {
@@ -649,7 +649,7 @@ async function exportAsPng() {
   // Header
   ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, W, 40);
   ctx.fillStyle = '#FF0000'; ctx.font = 'bold 12px monospace'; ctx.textAlign = 'left';
-  ctx.fillText('INDUSTRIAL LIGHTING STUDIO - HIGH RES EXPORT', 15, 25);
+  ctx.fillText('ALBEDO', 15, 25);
   curY = 40;
 
   // --- 04_SCENE_PREVIEW (New Section) ---
@@ -660,9 +660,9 @@ async function exportAsPng() {
   ctx.fillStyle = bgGrad; ctx.fillRect(0, curY, W, sceneH);
 
   const spheres = [
-    { label: 'PRIMARY (T1)', hex: state.theme1, x: 100 },
-    { label: 'AMBIENT (T2)', hex: state.theme2, x: 230 },
-    { label: 'ACCENT (AC)', hex: state.accent, x: 360 },
+    { label: 'PRIMARY:T1', hex: state.theme1, x: 100 },
+    { label: 'AMBIENT:T2', hex: state.theme2, x: 230 },
+    { label: 'ACCENT:AC', hex: state.accent, x: 360 },
     { label: 'SKIN BASE', hex: state.skinBase, x: 490 }
   ];
 
@@ -675,13 +675,13 @@ async function exportAsPng() {
 
   // --- SOURCE COLORS ---
   const sourceHexes = [state.theme1, state.theme2, state.accent];
-  const sLabels = ['PRIMARY(T1)', 'AMBIENT(T2)', 'ACCENT(AC)'];
+  const sLabels = ['PRIMARY:T1', 'AMBIENT:T2', 'ACCENT:AC'];
   sourceHexes.forEach((hex, i) => drawTiledChip(i * 200, curY, 200, 60, hex, sLabels[i]));
   curY += 60;
 
   // --- ATMOSPHERIC_SKIN ---
   const skinTargetNodes = document.querySelectorAll('#skinPaletteDisplay .skin-chip');
-  const skinLabels = ['BASE', 'S1(ENV1)', 'S2(ENV2)', 'BLUSH', 'HIGHLIGHT'];
+  const skinLabels = ['BASE', 'S1:ENV1', 'S2:ENV2', 'BLUSH', 'HIGHLIGHT'];
   skinTargetNodes.forEach((el, i) => {
     if (i < 5) drawTiledChip(i * 120, curY, 120, 60, getHex(el), skinLabels[i]);
   });
@@ -701,7 +701,7 @@ async function exportAsPng() {
 
   const finalLogicH = curY + (10 * rowH);
   const finalPhysicalH = finalLogicH * scale;
-  
+
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = W * scale; tempCanvas.height = finalPhysicalH;
   const tCtx = tempCanvas.getContext('2d');
@@ -709,9 +709,9 @@ async function exportAsPng() {
 
   const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
   const paletteName = `OKLCH_LIT_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
-  const link = document.createElement('a'); 
-  link.download = `${paletteName}.png`; 
-  link.href = tempCanvas.toDataURL('image/png'); 
+  const link = document.createElement('a');
+  link.download = `${paletteName}.png`;
+  link.href = tempCanvas.toDataURL('image/png');
   link.click();
 }
 
@@ -749,7 +749,7 @@ async function exportAsCls() {
 
   const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
   const paletteName = `OKLCH_${capitalize(state.harmony)}_${state.theme1.substring(1).toUpperCase()}`;
-  
+
   const asciiName = paletteName;
   const utf8Name = paletteName;
 
@@ -771,15 +771,15 @@ async function exportAsCls() {
 
   view.setUint16(off, 256, true); off += 2;
   view.setUint32(off, metaLen, true); off += 4;
-  
+
   view.setUint16(off, asciiBytes.length, true); off += 2;
-  for(let i = 0; i < asciiBytes.length; i++) view.setUint8(off++, asciiBytes[i]);
-  
+  for (let i = 0; i < asciiBytes.length; i++) view.setUint8(off++, asciiBytes[i]);
+
   view.setUint32(off, 0, true); off += 4;
-  
+
   view.setUint16(off, utf8Bytes.length, true); off += 2;
-  for(let i = 0; i < utf8Bytes.length; i++) view.setUint8(off++, utf8Bytes[i]);
-  
+  for (let i = 0; i < utf8Bytes.length; i++) view.setUint8(off++, utf8Bytes[i]);
+
   view.setUint32(off, 4, true); off += 4; // channels (RGBA)
   view.setUint32(off, colors.length, true); off += 4;
   view.setUint32(off, colorDataSize, true); off += 4;
@@ -793,10 +793,10 @@ async function exportAsCls() {
     view.setUint32(off, 0, true); off += 4;
   });
 
-  const blob = new Blob([buffer], { type: 'application/octet-stream' }); 
-  const link = document.createElement('a'); 
-  link.download = `${paletteName}.cls`; 
-  link.href = URL.createObjectURL(blob); 
+  const blob = new Blob([buffer], { type: 'application/octet-stream' });
+  const link = document.createElement('a');
+  link.download = `${paletteName}.cls`;
+  link.href = URL.createObjectURL(blob);
   link.click();
   showToast('SYSTEM: CLS_EXPORT_SUCCESS');
 }

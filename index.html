@@ -1,39 +1,60 @@
 <!DOCTYPE html>
 <html lang="ja" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Anime Color Harmony - Industrial Pro</title>
+    <title>ALBEDO</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="./style.css">
 </head>
+
 <body>
     <header class="main-header">
         <div class="logo">
-            <span class="dot-text">COLOR_HARMONY_STUDIO</span>
-            <span class="version">V2.1_IND_PRO</span>
+            <span class="dot-text">ALBEDO</span>
+            <span class="version">V1.0</span>
         </div>
         <div class="header-toolbar">
             <button id="btnExportPng" class="tool-btn" title="EXPORT_PNG">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <text x="12" y="11" font-family="sans-serif" font-weight="bold" font-size="9" text-anchor="middle" stroke="none" fill="currentColor" letter-spacing="1">PNG</text>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <text x="12" y="11" font-family="sans-serif" font-weight="bold" font-size="9" text-anchor="middle"
+                        stroke="none" fill="currentColor" letter-spacing="1">PNG</text>
                     <path d="M12 13v8" />
                     <path d="M8 17l4 4 4-4" />
                 </svg>
             </button>
             <button id="btnExportCls" class="tool-btn" title="EXPORT_CLS">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <text x="12" y="11" font-family="sans-serif" font-weight="bold" font-size="9" text-anchor="middle" stroke="none" fill="currentColor" letter-spacing="1">CLS</text>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <text x="12" y="11" font-family="sans-serif" font-weight="bold" font-size="9" text-anchor="middle"
+                        stroke="none" fill="currentColor" letter-spacing="1">CLS</text>
                     <path d="M12 13v8" />
                     <path d="M8 17l4 4 4-4" />
                 </svg>
             </button>
             <div class="divider"></div>
             <button id="themeToggle" class="tool-btn" title="TOGGLE_THEME">
-                <svg id="themeIconSun" class="theme-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                <svg id="themeIconMoon" class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg id="themeIconSun" class="theme-icon hidden" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="5" />
+                    <line x1="12" y1="1" x2="12" y2="3" />
+                    <line x1="12" y1="21" x2="12" y2="23" />
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                    <line x1="1" y1="12" x2="3" y2="12" />
+                    <line x1="21" y1="12" x2="23" y2="12" />
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                </svg>
+                <svg id="themeIconMoon" class="theme-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
             </button>
         </div>
     </header>
@@ -42,38 +63,38 @@
         <!-- Sidebar: Compact Config -->
         <aside class="sidebar">
             <section class="card industrial compact animate-in">
-                <h2 class="card-title">00_LIGHTING_STUDIO</h2>
+                <h2 class="card-title">00_LIGHTING</h2>
                 <div class="control-group">
                     <label class="control-label">PRESET_ENVIRONMENT</label>
                     <select id="lightingPreset" class="select-input">
                         <option value="none">00_NEUTRAL (OFF)</option>
-                        <option value="goldenHour" selected>01_GOLDEN_HOUR (SUNSET)</option>
-                        <option value="nostalgicBlue">02_NOSTALGIC_BLUE (DAYTIME)</option>
-                        <option value="cloudy">03_OVERCAST (DIFFUSED)</option>
-                        <option value="cyberpunk">04_NEON_CYBERPUNK</option>
-                        <option value="moonlight">05_MOONLIGHT_SILVER (NIGHT)</option>
-                        <option value="aquarium">06_AQUARIUM_DEEP (WATER)</option>
-                        <option value="forest">07_FOREST_SUNBEAM (NATURE)</option>
-                        <option value="custom">99_CUSTOM_LIGHTING</option>
+                        <option value="goldenHour" selected>01_SUNSET</option>
+                        <option value="nostalgicBlue">02_DAYTIME</option>
+                        <option value="cloudy">03_DIFFUSED</option>
+                        <option value="cyberpunk">04_NEON</option>
+                        <option value="moonlight">05_MOONLIGHT</option>
+                        <option value="aquarium">06_AQUARIUM</option>
+                        <option value="forest">07_FOREST</option>
+                        <option value="custom">99_CUSTOM</option>
                     </select>
                 </div>
                 <div id="lightingControlsPanel">
                     <div class="control-group tighter">
-                        <label class="control-label">KEY_LIGHT (SUN/MAIN)</label>
+                        <label class="control-label">KEY_LIGHT</label>
                         <div class="picker-row">
                             <input type="color" id="keyLightPicker" value="#FFD599">
                             <span class="lch-display" id="lchKey"></span>
                         </div>
                     </div>
                     <div class="control-group tighter">
-                        <label class="control-label">AMBIENT_SHADOW (ENV)</label>
+                        <label class="control-label">SHADOW</label>
                         <div class="picker-row">
                             <input type="color" id="ambientLightPicker" value="#2A2640">
                             <span class="lch-display" id="lchAmb"></span>
                         </div>
                     </div>
                     <div class="control-group tighter">
-                        <label class="control-label">SKY_AMBIENT (BOUNCE)</label>
+                        <label class="control-label">SKY</label>
                         <div class="picker-row">
                             <input type="color" id="skyLightPicker" value="#85A8D0">
                             <span class="lch-display" id="lchSky"></span>
@@ -83,8 +104,8 @@
             </section>
 
             <section class="card industrial compact animate-in" style="animation-delay: 0.1s;">
-                <h2 class="card-title">01_CONFIG</h2>
-                
+                <h2 class="card-title">01_PALETTE_COLOR</h2>
+
                 <div class="control-group">
                     <label class="control-label">HARMONY_PATTERN</label>
                     <select id="harmonyPattern" class="select-input">
@@ -97,7 +118,7 @@
                 </div>
 
                 <div class="control-group tighter">
-                    <label class="control-label">PRIMARY (T1)</label>
+                    <label class="control-label">PRIMARY:T1</label>
                     <div class="picker-row">
                         <input type="color" id="themePicker1" value="#38bdf8">
                         <div class="lch-display" id="lch1">L:-- C:-- H:--</div>
@@ -105,7 +126,7 @@
                 </div>
 
                 <div class="control-group tighter">
-                    <label class="control-label">AMBIENT (T2)</label>
+                    <label class="control-label">AMBIENT:T2</label>
                     <div class="picker-row">
                         <input type="color" id="themePicker2" value="#818cf8">
                         <div class="lch-display" id="lch2">L:-- C:-- H:--</div>
@@ -113,7 +134,7 @@
                 </div>
 
                 <div class="control-group tighter">
-                    <label class="control-label">ACCENT (AC)</label>
+                    <label class="control-label">ACCENT:AC</label>
                     <div class="picker-row">
                         <input type="color" id="accentPicker" value="#fbbf24">
                         <div class="lch-display" id="lchA">L:-- C:-- H:--</div>
@@ -141,14 +162,15 @@
                         </div>
                         <div class="slider-container">
                             <label class="control-label vertical-label">BRIGHTNESS</label>
-                            <input type="range" id="lightnessSlider" min="0" max="1" step="0.01" value="0.7" class="vertical-range industrial" orient="vertical">
+                            <input type="range" id="lightnessSlider" min="0" max="1" step="0.01" value="0.7"
+                                class="vertical-range industrial" orient="vertical">
                             <button id="btnResetWheel" class="reset-btn" title="RESET_WHEEL">RES</button>
                         </div>
                     </div>
                 </div>
 
                 <div class="card industrial preview-section animate-in" style="animation-delay: 0.4s;">
-                    <h2 class="card-title">04_SCENE_PREVIEW 3D</h2>
+                    <h2 class="card-title">04_SCENE_PREVIEW</h2>
                     <div id="preview_bg" class="preview-grid-container">
                         <!-- PRIMARY T1 -->
                         <div class="sphere-slot">
@@ -182,7 +204,7 @@
             </div>
 
             <div class="card industrial variations-section animate-in" style="animation-delay: 0.5s;">
-                <h2 class="card-title">05_LIT_PALETTES (PHYSICAL)</h2>
+                <h2 class="card-title">05_LIT_PALETTES</h2>
                 <div id="variationGrid" class="variation-columns">
                     <!-- Filled by JS: 3 columns for T1, T2, AC -->
                 </div>
@@ -192,7 +214,8 @@
 
     <footer class="app-footer">
         <div class="credits">
-            Color Set (.cls) encoding logic is based on <a href="https://github.com/Equbuxu/CLSEncoderDecoder" target="_blank" rel="noopener">CLSEncoderDecoder</a>. Copyright &copy; 2022 Egor Mozgovoy (MIT License).
+            Color Set (.cls) encoding logic is based on <a href="https://github.com/Equbuxu/CLSEncoderDecoder"
+                target="_blank" rel="noopener">CLSEncoderDecoder</a>. Copyright &copy; 2022 Egor Mozgovoy (MIT License).
         </div>
     </footer>
 
@@ -200,4 +223,5 @@
 
     <script src="./app.js"></script>
 </body>
+
 </html>
