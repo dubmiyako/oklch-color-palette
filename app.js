@@ -102,7 +102,7 @@ function init() {
 
   // Wheel Interactions (Migrated to Pointer Events for Pen/Touch/Hover robustness)
   wheelHandles.addEventListener('pointerdown', startDrag);
-  window.addEventListener('pointermove', drag, { passive: false });
+  window.addEventListener('pointermove', drag);
   const endDrag = () => { activeHandle = null; updateUI(); };
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('pointercancel', endDrag);
@@ -223,7 +223,6 @@ function startDrag(e) {
 
   if (e.target.classList.contains('handle')) {
     activeHandle = e.target.id;
-    if (e.cancelable) e.preventDefault();
     return;
   }
   
@@ -249,7 +248,6 @@ function startDrag(e) {
 
     if (closestHandle) {
       activeHandle = closestHandle;
-      if (e.cancelable) e.preventDefault();
     }
   }
 }
@@ -261,8 +259,6 @@ function drag(e) {
     activeHandle = null;
     return;
   }
-  
-  if (e.cancelable) e.preventDefault();
   
   const rect = wheelCanvas.getBoundingClientRect();
   const clientX = e.clientX;
