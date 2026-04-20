@@ -442,14 +442,16 @@ function oklchToHex(l, c, h) { const rgb = oklchToRgb(l, c, h); return rgbToHex(
 
 // --- Renderers ---
 function renderSkinPalette() {
-  const skinLch = rgbToOklch(hexToRgb(state.skinBase)), env1Lch = rgbToOklch(hexToRgb(state.theme1)), env2Lch = rgbToOklch(hexToRgb(state.theme2));
-  const lerp = (h1, h2, t) => { let d = (h2 - h1 + 360) % 360; if (d > 180) d -= 360; return (h1 + d * t + 360) % 360; };
+  const skinLch = rgbToOklch(hexToRgb(state.skinBase));
+  // Create a blush base color by pulling hue towards red (hue ~ 20) and boosting chroma slightly
+  const blushHex = oklchToHex(skinLch.l * 0.95, Math.min(MAX_CHROMA, skinLch.c + 0.08), mixHue(skinLch.h, 20, 0.6));
+
   const palette = [
-    { name: 'Base', hex: state.skinBase },
-    { name: 'S1 (Env1)', hex: oklchToHex(Math.max(0, skinLch.l - 0.15), skinLch.c + 0.05, lerp(skinLch.h, env1Lch.h, 0.2)) },
-    { name: 'S2 (Env2)', hex: oklchToHex(Math.max(0, skinLch.l - 0.25), skinLch.c + 0.08, lerp(skinLch.h, env2Lch.h, 0.3)) },
-    { name: 'Blush', hex: oklchToHex(skinLch.l + 0.05, skinLch.c + 0.08, lerp(skinLch.h, 15, 0.5)) },
-    { name: 'Highlight', hex: oklchToHex(Math.min(1, skinLch.l + 0.1), skinLch.c - 0.05, lerp(skinLch.h, env1Lch.h, 0.1)) }
+    { name: 'Highlight (Key)', hex: applyLighting(state.skinBase, 'highlight') },
+    { name: 'Base (Albedo)', hex: state.skinBase },
+    { name: 'Blush (Albedo)', hex: blushHex },
+    { name: 'Shadow (Amb)', hex: applyLighting(state.skinBase, 'shadow') },
+    { name: 'Deep (Amb)', hex: applyLighting(state.skinBase, 'deepShadow') }
   ];
   skinPaletteDisplay.innerHTML = '';
   palette.forEach(c => skinPaletteDisplay.appendChild(createSkinChip(c.hex, c.name)));
