@@ -102,8 +102,12 @@ function init() {
 
   // Wheel Interactions
   wheelHandles.addEventListener('mousedown', startDrag);
+  wheelHandles.addEventListener('touchstart', startDrag, { passive: false });
   window.addEventListener('mousemove', drag);
-  window.addEventListener('mouseup', () => { activeHandle = null; updateUI(); });
+  window.addEventListener('touchmove', drag, { passive: false });
+  const endDrag = () => { activeHandle = null; updateUI(); };
+  window.addEventListener('mouseup', endDrag);
+  window.addEventListener('touchend', endDrag);
 
   themeToggle.addEventListener('click', toggleTheme);
   btnExportPng.addEventListener('click', exportAsPng);
@@ -215,11 +219,19 @@ function renderWheelHandles(lch1, lch2, lchA) {
   });
 }
 
-function startDrag(e) { if (e.target.classList.contains('handle')) { activeHandle = e.target.id; e.preventDefault(); } }
+function startDrag(e) {
+  if (e.target.classList.contains('handle')) {
+    activeHandle = e.target.id;
+    if (e.cancelable) e.preventDefault();
+  }
+}
 function drag(e) {
   if (!activeHandle) return;
+  if (e.type === 'touchmove' && e.cancelable) e.preventDefault();
   const rect = wheelCanvas.getBoundingClientRect();
-  const dx = (e.clientX - rect.left) - rect.width / 2, dy = (e.clientY - rect.top) - rect.height / 2;
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const dx = (clientX - rect.left) - rect.width / 2, dy = (clientY - rect.top) - rect.height / 2;
   const dist = Math.sqrt(dx * dx + dy * dy);
   let h = Math.atan2(dy, dx) * (180 / Math.PI); if (h < 0) h += 360;
   const c = Math.min(MAX_CHROMA, (dist / (rect.width / 2 * 0.95)) * MAX_CHROMA);
