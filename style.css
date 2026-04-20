@@ -86,8 +86,9 @@ body {
 
 /* Card Styling */
 .card.industrial {
-  padding: 1rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--border-main);
+  height: 100%;
 }
 
 .card.compact { padding: 0.75rem 1rem; }
@@ -119,7 +120,7 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
 }
 
 /* Main Content Rows */
-.top-row { display: grid; grid-template-columns: 320px 1.2fr 300px; border-bottom: 1px solid var(--border-main); }
+.top-row { display: grid; grid-template-columns: min-content min-content 1fr; gap: 1rem; border-bottom: 1px solid var(--border-main); padding-bottom: 1rem; }
 .top-row > div { border-bottom: none !important; border-right: 1px solid var(--border-main); }
 .top-row > div:last-child { border-right: none; }
 
@@ -248,29 +249,48 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
 .handle.main { width: 24px; height: 24px; border-width: 3px; }
 
 /* 3D Preview Space */
-.preview-section { margin-bottom: 2rem; background: var(--bg-card); transition: background-color 0.3s; }
+/* Expand the gradient container and remove the wrapper card's white background */
+.preview-section { 
+  margin-bottom: 0.5rem; 
+  background: transparent !important; 
+  border: none !important; 
+  box-shadow: none !important; 
+  padding-left: 0.5rem !important;
+  padding-right: 0.5rem !important;
+}
 .preview-grid-container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.5rem;
-  padding: 1.5rem;
+  grid-template-columns: repeat(2, 80px);
+  grid-template-rows: repeat(2, 80px);
+  justify-content: center;
+  align-content: center;
+  gap: 1.2rem;
   background: var(--bg-app);
   border-radius: 8px;
   border: 1px solid var(--border-main);
   transition: background-color 0.3s;
+  min-width: 240px;
+  max-width: 240px;
+  min-height: 240px;
+  max-height: 240px;
+  margin: 0 auto;
+  flex-shrink: 0;
 }
 
 .sphere-slot {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 0.2rem;
 }
 
 .css-sphere {
-  width: 90px;
-  height: 90px;
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   border-radius: 50%;
+  flex-shrink: 0;
   position: relative;
   /* 
     Multiple radial gradients create the 3D effect:
@@ -300,7 +320,7 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
 /* Global components */
 .skin-palette.compact-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 0.5rem;
 }
 .skin-palette .skin-chip-wrapper { display: flex; align-items: center; gap: 0.4rem; padding: 0.25rem; border: 1px solid var(--border-main); background: var(--bg-card); cursor: pointer; }
@@ -327,9 +347,6 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-main);
-  z-index: 100;
 }
 .credits {
   font-size: 0.55rem;
