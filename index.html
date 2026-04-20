@@ -136,7 +136,7 @@
                     <h2 class="card-title">03_WAVE_WHEEL</h2>
                     <div class="wheel-flex">
                         <div class="wheel-outer">
-                            <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                            <canvas id="wheelCanvas" width="240" height="240"></canvas>
                             <div id="wheelHandles"></div>
                         </div>
                         <div class="slider-container">
@@ -144,6 +144,64 @@
                             <input type="range" id="lightnessSlider" min="0" max="1" step="0.01" value="0.7" class="vertical-range industrial" orient="vertical">
                             <button id="btnResetWheel" class="reset-btn" title="RESET_WHEEL">RES</button>
                         </div>
+                    </div>
+                </div>
+
+                <div class="card industrial preview-section animate-in" style="animation-delay: 0.4s; overflow: hidden;">
+                    <h2 class="card-title">04_SCENE_PREVIEW 3D</h2>
+                    <div class="preview-container">
+                        <svg viewBox="0 0 880 280" preserveAspectRatio="xMidYMid meet" class="lighting-svg-canvas">
+                            <rect id="preview_bg" x="0" y="0" width="880" height="280" fill="#1A1D24" />
+                            <path id="preview_ground" d="M0,170 L880,170 L880,280 L0,280 Z" fill="#13151A" opacity="0.5" />
+                            
+                            <!-- PRIMARY T1 -->
+                            <g transform="translate(130, 110)">
+                                <ellipse cx="20" cy="75" rx="60" ry="15" class="fill_deepShadow_t1" opacity="0.6"/>
+                                <circle cx="0" cy="0" r="60" class="fill_base_t1" />
+                                <path d="M-42,42 A60,60 0 0,0 42,-42 A65,60 0 0,1 -42,42 Z" class="fill_shadow_t1" opacity="0.9" />
+                                <path d="M-20,56 A60,60 0 0,0 56,-20 A60,58 0 0,1 -20,56 Z" class="fill_deepShadow_t1" />
+                                <path d="M-52,30 A60,60 0 0,0 -20,56 A50,45 0 0,1 -52,30 Z" class="fill_bounce_t1" />
+                                <path d="M-20,-56 A60,60 0 0,1 45,-38 A45,50 0 0,0 -20,-56 Z" class="fill_light_t1" />
+                                <circle cx="-25" cy="-25" r="12" class="fill_highlight_t1" />
+                                <text x="0" y="130" text-anchor="middle" class="preview-label">PRIMARY (T1)</text>
+                            </g>
+
+                            <!-- AMBIENT T2 -->
+                            <g transform="translate(330, 110)">
+                                <ellipse cx="20" cy="75" rx="60" ry="15" class="fill_deepShadow_t2" opacity="0.6"/>
+                                <circle cx="0" cy="0" r="60" class="fill_base_t2" />
+                                <path d="M-42,42 A60,60 0 0,0 42,-42 A65,60 0 0,1 -42,42 Z" class="fill_shadow_t2" opacity="0.9" />
+                                <path d="M-20,56 A60,60 0 0,0 56,-20 A60,58 0 0,1 -20,56 Z" class="fill_deepShadow_t2" />
+                                <path d="M-52,30 A60,60 0 0,0 -20,56 A50,45 0 0,1 -52,30 Z" class="fill_bounce_t2" />
+                                <path d="M-20,-56 A60,60 0 0,1 45,-38 A45,50 0 0,0 -20,-56 Z" class="fill_light_t2" />
+                                <circle cx="-25" cy="-25" r="12" class="fill_highlight_t2" />
+                                <text x="0" y="130" text-anchor="middle" class="preview-label">AMBIENT (T2)</text>
+                            </g>
+
+                            <!-- ACCENT AC -->
+                            <g transform="translate(530, 110)">
+                                <ellipse cx="20" cy="75" rx="60" ry="15" class="fill_deepShadow_ac" opacity="0.6"/>
+                                <circle cx="0" cy="0" r="60" class="fill_base_ac" />
+                                <path d="M-42,42 A60,60 0 0,0 42,-42 A65,60 0 0,1 -42,42 Z" class="fill_shadow_ac" opacity="0.9" />
+                                <path d="M-20,56 A60,60 0 0,0 56,-20 A60,58 0 0,1 -20,56 Z" class="fill_deepShadow_ac" />
+                                <path d="M-52,30 A60,60 0 0,0 -20,56 A50,45 0 0,1 -52,30 Z" class="fill_bounce_ac" />
+                                <path d="M-20,-56 A60,60 0 0,1 45,-38 A45,50 0 0,0 -20,-56 Z" class="fill_light_ac" />
+                                <circle cx="-25" cy="-25" r="12" class="fill_highlight_ac" />
+                                <text x="0" y="130" text-anchor="middle" class="preview-label">ACCENT (AC)</text>
+                            </g>
+
+                            <!-- SKIN ALBEDO -->
+                            <g transform="translate(730, 110)">
+                                <ellipse cx="20" cy="75" rx="60" ry="15" class="fill_deepShadow_sk" opacity="0.6"/>
+                                <circle cx="0" cy="0" r="60" class="fill_base_sk" />
+                                <path d="M-42,42 A60,60 0 0,0 42,-42 A65,60 0 0,1 -42,42 Z" class="fill_shadow_sk" opacity="0.9" />
+                                <path d="M-20,56 A60,60 0 0,0 56,-20 A60,58 0 0,1 -20,56 Z" class="fill_deepShadow_sk" />
+                                <path d="M-52,30 A60,60 0 0,0 -20,56 A50,45 0 0,1 -52,30 Z" class="fill_bounce_sk" />
+                                <path d="M-20,-56 A60,60 0 0,1 45,-38 A45,50 0 0,0 -20,-56 Z" class="fill_light_sk" />
+                                <circle cx="-25" cy="-25" r="12" class="fill_highlight_sk" />
+                                <text x="0" y="130" text-anchor="middle" class="preview-label">SKIN BASE</text>
+                            </g>
+                        </svg>
                     </div>
                 </div>
 

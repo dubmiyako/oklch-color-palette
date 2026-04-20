@@ -286,6 +286,7 @@ function updateUI() {
   renderSkinPalette();
   renderVariationGrid();
   renderWheelHandles(lch1, lch2, lchA);
+  updateLightingPreview();
 
   Array.from(skinBasePicker.querySelectorAll('.skin-chip-wrapper')).forEach(wrap => {
     const chipHex = rgbToHex(...wrap.querySelector('.skin-chip').style.backgroundColor.match(/\d+/g).map(Number));
@@ -444,6 +445,53 @@ function oklchToRgb(l, c, h) {
 function oklchToHex(l, c, h) { const rgb = oklchToRgb(l, c, h); return rgbToHex(rgb.r, rgb.g, rgb.b); }
 
 // --- Renderers ---
+function updateLightingPreview() {
+  const bg = document.getElementById('preview_bg');
+  if (bg) {
+    // Derive a very dark background from the ambient color
+    bg.setAttribute('fill', applyLighting(state.ambientLight, 'deepShadow')); 
+  }
+
+  const sources = [
+    { id: 't1', hex: state.theme1 },
+    { id: 't2', hex: state.theme2 },
+    { id: 'ac', hex: state.accent },
+    { id: 'sk', hex: state.skinBase }
+  ];
+
+  sources.forEach(src => {
+    const els = {
+      base: document.querySelectorAll(`.fill_base_${src.id}`),
+      shadow: document.querySelectorAll(`.fill_shadow_${src.id}`),
+      deepShadow: document.querySelectorAll(`.fill_deepShadow_${src.id}`),
+      bounce: document.querySelectorAll(`.fill_bounce_${src.id}`),
+      light: document.querySelectorAll(`.fill_light_${src.id}`),
+      highlight: document.querySelectorAll(`.fill_highlight_${src.id}`)
+    };
+
+    let colors = {
+      base: src.hex,
+      shadow: applyLighting(src.hex, 'shadow'),
+      deepShadow: applyLighting(src.hex, 'deepShadow'),
+      bounce: applyLighting(src.hex, 'bounce'),
+      light: applyLighting(src.hex, 'light'),
+      highlight: applyLighting(src.hex, 'highlight')
+    };
+
+    if (src.id === 'sk') {
+      // Soften the base albedo for skin preview object
+      const skinLch = rgbToOklch(hexToRgb(src.hex));
+      colors.base = oklchToHex(skinLch.l * 0.95, skinLch.c, mixHue(skinLch.h, 20, 0.4));
+    }
+
+    Object.keys(els).forEach(layerName => {
+      els[layerName].forEach(node => {
+        node.setAttribute('fill', colors[layerName]);
+      });
+    });
+  });
+}
+
 function renderSkinPalette() {
   const skinLch = rgbToOklch(hexToRgb(state.skinBase));
   // Create a blush base color by pulling hue towards red (hue ~ 20) and boosting chroma slightly
