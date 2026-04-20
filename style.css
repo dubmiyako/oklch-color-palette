@@ -149,6 +149,7 @@ input[type="color"] { width: 40px; height: 30px; border: 1px solid var(--border-
   width: 100%;
   height: 100%;
   pointer-events: auto; /* Essential for interaction */
+  touch-action: none; /* Prevents scroll when dragging on iPad */
 }
 .slider-container { 
   height: 240px; 

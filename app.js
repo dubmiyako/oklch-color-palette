@@ -100,14 +100,12 @@ function init() {
     updateUI();
   });
 
-  // Wheel Interactions
-  wheelHandles.addEventListener('mousedown', startDrag);
-  wheelHandles.addEventListener('touchstart', startDrag, { passive: false });
-  window.addEventListener('mousemove', drag);
-  window.addEventListener('touchmove', drag, { passive: false });
+  // Wheel Interactions (Migrated to Pointer Events for Pen/Touch/Hover robustness)
+  wheelHandles.addEventListener('pointerdown', startDrag);
+  window.addEventListener('pointermove', drag, { passive: false });
   const endDrag = () => { activeHandle = null; updateUI(); };
-  window.addEventListener('mouseup', endDrag);
-  window.addEventListener('touchend', endDrag);
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
 
   themeToggle.addEventListener('click', toggleTheme);
   btnExportPng.addEventListener('click', exportAsPng);
@@ -220,6 +218,9 @@ function renderWheelHandles(lch1, lch2, lchA) {
 }
 
 function startDrag(e) {
+  // Ignore pen hover without touching
+  if (e.pointerType === 'pen' && e.buttons === 0) return;
+
   if (e.target.classList.contains('handle')) {
     activeHandle = e.target.id;
     if (e.cancelable) e.preventDefault();
@@ -227,9 +228,9 @@ function startDrag(e) {
   }
   
   // Expand implicit touch target for iPad/Mobile (proximity detection)
-  if (e.type === 'touchstart' || e.type === 'mousedown') {
-    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  if (e.type === 'pointerdown') {
+    const clientX = e.clientX;
+    const clientY = e.clientY;
     
     let closestHandle = null;
     let minDist = 30; // Implicit hit-box radius in pixels
@@ -254,10 +255,18 @@ function startDrag(e) {
 }
 function drag(e) {
   if (!activeHandle) return;
-  if (e.type === 'touchmove' && e.cancelable) e.preventDefault();
+  
+  // Clean up if pen/mouse is hovering without buttons pressed (failsafe)
+  if (e.pointerType !== 'touch' && e.buttons === 0) {
+    activeHandle = null;
+    return;
+  }
+  
+  if (e.cancelable) e.preventDefault();
+  
   const rect = wheelCanvas.getBoundingClientRect();
-  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  const clientX = e.clientX;
+  const clientY = e.clientY;
   const dx = (clientX - rect.left) - rect.width / 2, dy = (clientY - rect.top) - rect.height / 2;
   const dist = Math.sqrt(dx * dx + dy * dy);
   let h = Math.atan2(dy, dx) * (180 / Math.PI); if (h < 0) h += 360;
