@@ -454,8 +454,10 @@ function oklchToHex(l, c, h) { const rgb = oklchToRgb(l, c, h); return rgbToHex(
 function updateLightingPreview() {
   const bg = document.getElementById('preview_bg');
   if (bg) {
-    // Update the background to reflect ambient lighting
-    bg.style.backgroundColor = applyLighting(state.ambientLight, 'deepShadow');
+    // Gradient from Sky Bounce to Ambient Shadow to look realistic
+    const topColor = applyLighting(state.skyLight, 'bounce');
+    const bottomColor = applyLighting(state.ambientLight, 'shadow');
+    bg.style.background = `linear-gradient(to bottom, ${topColor}, ${bottomColor})`;
   }
 
   const sources = [
