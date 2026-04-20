@@ -24,6 +24,16 @@ const lightnessSlider = document.getElementById('lightnessSlider');
 const btnResetWheel = document.getElementById('btnResetWheel');
 const htmlEl = document.documentElement;
 
+// Lighting Controls
+const lightingPreset = document.getElementById('lightingPreset');
+const customLightingPanel = document.getElementById('customLightingPanel');
+const keyLightPicker = document.getElementById('keyLightPicker');
+const ambientLightPicker = document.getElementById('ambientLightPicker');
+const skyLightPicker = document.getElementById('skyLightPicker');
+const lchKey = document.getElementById('lchKey');
+const lchAmb = document.getElementById('lchAmb');
+const lchSky = document.getElementById('lchSky');
+
 const skinBases = [
   { name: 'Pale', hex: '#fff1e5' },
   { name: 'Fair', hex: '#ffe4d1' },
@@ -38,11 +48,72 @@ let state = {
   accent: '#fbbf24',
   l: 0.7,
   harmony: 'triadic',
-  skinBase: skinBases[1].hex
+  skinBase: skinBases[1].hex,
+  lightingPreset: 'goldenHour',
+  keyLight: '#FFD599',
+  ambientLight: '#2A2640',
+  skyLight: '#85A8D0'
+};
+
+const LightingPresets = {
+  none: { key: '#FFFFFF', amb: '#000000', sky: '#FFFFFF' },
+  goldenHour: { key: '#FFD599', amb: '#2A2640', sky: '#85A8D0' },
+  nostalgicBlue: { key: '#FFF5D1', amb: '#1F1B38', sky: '#99CCFF' },
+  cloudy: { key: '#E0E5EC', amb: '#4A5060', sky: '#D0D8E0' },
+  cyberpunk: { key: '#FF0055', amb: '#001A33', sky: '#00FFFF' }
 };
 
 let activeHandle = null;
 const MAX_CHROMA = 0.37;
+
+// --- Lighting Engine ---
+function mixHue(h1, h2, amount) {
+  let diff = h2 - h1;
+  if (diff > 180) diff -= 360;
+  else if (diff < -180) diff += 360;
+  let combined = h1 + (diff * amount);
+  if (combined < 0) combined += 360;
+  return combined % 360;
+}
+
+function applyLighting(baseHex, type) {
+  const base = rgbToOklch(hexToRgb(baseHex));
+  const key = rgbToOklch(hexToRgb(state.keyLight));
+  const amb = rgbToOklch(hexToRgb(state.ambientLight));
+  const sky = rgbToOklch(hexToRgb(state.skyLight));
+
+  if (state.lightingPreset === 'none') return baseHex;
+
+  let l = base.l, c = base.c, h = base.h;
+
+  switch(type) {
+    case 'highlight': // Key Light + Sky Bounce
+      l = Math.min(0.98, base.l + (key.l * 0.3) + 0.05);
+      c = Math.min(MAX_CHROMA, base.c + (key.c * 0.1));
+      h = mixHue(base.h, key.h, 0.4);
+      break;
+    case 'light': // Key Light
+      l = Math.min(0.95, base.l + (key.l * 0.15));
+      h = mixHue(base.h, key.h, 0.2);
+      break;
+    case 'shadow': // Ambient Light
+      l = Math.max(0.05, base.l * 0.6);
+      c = base.c * 0.9;
+      h = mixHue(base.h, amb.h, 0.6);
+      break;
+    case 'deepShadow': // Deep Ambient Light
+      l = Math.max(0.02, base.l * 0.4);
+      c = base.c * 0.8;
+      h = mixHue(base.h, amb.h, 0.8);
+      break;
+    case 'bounce': // Sky Ambient
+      l = Math.min(0.95, base.l * 0.7 + (sky.l * 0.2));
+      c = base.c * 0.85;
+      h = mixHue(base.h, sky.h, 0.5);
+      break;
+  }
+  return oklchToHex(l, c, h);
+}
 
 // --- Initialization ---
 function init() {
@@ -54,6 +125,40 @@ function init() {
   // Sync icons for light mode (show moon to switch to dark)
   themeIconSun.classList.add('hidden');
   themeIconMoon.classList.remove('hidden');
+
+  // Lighting Listeners
+  if (lightingPreset) {
+    lightingPreset.addEventListener('change', (e) => {
+      state.lightingPreset = e.target.value;
+      if (state.lightingPreset === 'custom') {
+        customLightingPanel.style.display = 'block';
+      } else {
+        customLightingPanel.style.display = 'none';
+        if (LightingPresets[state.lightingPreset]) {
+          const p = LightingPresets[state.lightingPreset];
+          state.keyLight = p.key;
+          state.ambientLight = p.amb;
+          state.skyLight = p.sky;
+          keyLightPicker.value = p.key;
+          ambientLightPicker.value = p.amb;
+          skyLightPicker.value = p.sky;
+        }
+      }
+      updateUI();
+    });
+  }
+
+  const bindCustomLight = (picker, lightField) => {
+    if (picker) {
+      picker.addEventListener('input', (e) => {
+        state[lightField] = e.target.value;
+        updateUI();
+      });
+    }
+  };
+  bindCustomLight(keyLightPicker, 'keyLight');
+  bindCustomLight(ambientLightPicker, 'ambientLight');
+  bindCustomLight(skyLightPicker, 'skyLight');
 
   // Pickers
   themePicker1.addEventListener('input', (e) => {
@@ -164,6 +269,15 @@ function updateUI() {
   lchDisplay1.textContent = `L:${lch1.l.toFixed(2)} C:${lch1.c.toFixed(2)} H:${lch1.h.toFixed(0)}`;
   lchDisplay2.textContent = `L:${lch2.l.toFixed(2)} C:${lch2.c.toFixed(2)} H:${lch2.h.toFixed(0)}`;
   lchDisplayA.textContent = `L:${lchA.l.toFixed(2)} C:${lchA.c.toFixed(2)} H:${lchA.h.toFixed(0)}`;
+
+  if (lchKey) {
+    const lKey = rgbToOklch(hexToRgb(state.keyLight));
+    const lAmb = rgbToOklch(hexToRgb(state.ambientLight));
+    const lSky = rgbToOklch(hexToRgb(state.skyLight));
+    lchKey.textContent = `H:${lKey.h.toFixed(0)}`;
+    lchAmb.textContent = `H:${lAmb.h.toFixed(0)}`;
+    lchSky.textContent = `H:${lSky.h.toFixed(0)}`;
+  }
 
   renderSkinPalette();
   renderVariationGrid();
@@ -350,28 +464,18 @@ function renderVariationGrid() {
   sources.forEach(src => {
     const col = document.createElement('div'); col.className = 'variation-column';
     col.innerHTML = `<div class="column-header">${src.name}</div>`;
-    const lch = rgbToOklch(hexToRgb(src.hex));
+    
+    // Instead of naive HSL manipulation, use Physics-Based Lighting Simulation.
     const vars = [
-      { n: 'Original', l: lch.l, c: lch.c, h: lch.h },
-      { n: 'Light+', l: Math.min(1, lch.l + 0.2), c: lch.c, h: lch.h },
-      { n: 'Dark-', l: Math.max(0, lch.l - 0.2), c: lch.c, h: lch.h },
-      { n: 'Saturation+', l: lch.l, c: Math.min(MAX_CHROMA, lch.c + 0.1), h: lch.h },
-      { n: 'Saturation-', l: lch.l, c: Math.max(0, lch.c - 0.1), h: lch.h },
-      { n: 'Hue+15', l: lch.l, c: lch.c, h: (lch.h + 15) % 360 },
-      { n: 'Hue-15', l: lch.l, c: lch.c, h: (lch.h - 15 + 360) % 360 },
-      { n: 'Pastel', l: 0.9, c: 0.05, h: lch.h },
-      { n: 'Deep', l: 0.4, c: 0.2, h: lch.h },
-      { n: 'Ambient Mix', l: lch.l * 0.8, c: lch.c, h: (lch.h + 30) % 360 },
-      { n: 'Low-C Light', l: 0.95, c: 0.02, h: lch.h },
-      { n: 'Cold Mix', l: lch.l, c: lch.c, h: (lch.h + 180) % 360 }
+      { n: 'Highlight (Key+Sky)', hx: applyLighting(src.hex, 'highlight') },
+      { n: 'Light (Key)', hx: applyLighting(src.hex, 'light') },
+      { n: 'Albedo (Base)', hx: src.hex },
+      { n: 'Bounce (Sky)', hx: applyLighting(src.hex, 'bounce') },
+      { n: 'Shadow (Amb)', hx: applyLighting(src.hex, 'shadow') },
+      { n: 'Deep Shadow (Amb)', hx: applyLighting(src.hex, 'deepShadow') }
     ];
 
-    // Originalを先頭に固定し、残りを明度順（降順）でソート
-    const original = vars.shift();
-    vars.sort((a, b) => b.l - a.l);
-    const sortedVars = [original, ...vars];
-
-    sortedVars.forEach(v => col.appendChild(createMiniChip(oklchToHex(v.l, v.c, v.h), v.n)));
+    vars.forEach(v => col.appendChild(createMiniChip(v.hx, v.n)));
     variationGrid.appendChild(col);
   });
 }
