@@ -60,7 +60,10 @@ const LightingPresets = {
   goldenHour: { key: '#FFD599', amb: '#2A2640', sky: '#85A8D0' },
   nostalgicBlue: { key: '#FFF5D1', amb: '#1F1B38', sky: '#99CCFF' },
   cloudy: { key: '#E0E5EC', amb: '#4A5060', sky: '#D0D8E0' },
-  cyberpunk: { key: '#FF0055', amb: '#001A33', sky: '#00FFFF' }
+  cyberpunk: { key: '#FF0055', amb: '#001A33', sky: '#00FFFF' },
+  moonlight: { key: '#D4E0ED', amb: '#121626', sky: '#41526B' },
+  aquarium: { key: '#4DF8FF', amb: '#0B2036', sky: '#1A66B3' },
+  forest: { key: '#FFFFD4', amb: '#143021', sky: '#68B383' }
 };
 
 let activeHandle = null;
